@@ -1,0 +1,17 @@
+Now that I understand the book app better, implement it my way.
+No reason to re-write the whole program again.
+It's more useful to learn by doing it this way.
+
+
+::main.cpp:: (similar to D3DApp)
+Instantiate the Editor
+
+::Editor.cpp:: (similar to InitDirect3DApp)
+The Editor uses it's own instance of the renderer to draw
+
+::Renderer.cpp:: (similar to D3DApp)
+Rendering code (Draw, Update, Resize)
+
+Version 2 ideas:
+
+- Show version 1 to Cherno / Jared and ask for feedback
