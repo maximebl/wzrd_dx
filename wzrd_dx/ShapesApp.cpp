@@ -762,6 +762,13 @@ void ShapesApp::BuildTreeSpritesGeometry() {
 	m_geometries["treeSpriteGeo"] = std::move(geo);
 }
 
+void ShapesApp::BuildTestSpriteGeometry() {
+	struct TestSpriteVertex {
+		XMFLOAT3 Pos;
+		XMFLOAT2 
+	};
+}
+
 void ShapesApp::BuildMaterials() {
 	auto grass = std::make_unique<Material>();
 	grass->Name = "grass";

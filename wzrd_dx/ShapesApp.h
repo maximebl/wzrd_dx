@@ -55,6 +55,7 @@ public:
 	void BuildDescriptorHeaps();
 	void BuildMaterials();
 	void BuildTreeSpritesGeometry();
+	void BuildTestSpriteGeometry();
 
 	float GetHillsHeight(float x, float y) const;
 	DirectX::XMFLOAT3 GetHillsNormal(float x, float z) const;
