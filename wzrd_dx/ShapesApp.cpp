@@ -18,6 +18,7 @@ bool ShapesApp::init() {
 	BuildWavesGeometryBuffers();
 	BuildBoxGeometry();
 	BuildTreeSpritesGeometry();
+	BuildTestSpriteGeometry();
 	BuildMaterials();
 	BuildRenderItems();
 	BuildFrameResources();
@@ -71,6 +72,9 @@ void ShapesApp::render() {
 
 	m_graphicsCommandList->SetPipelineState(m_PSOs["treeSprites"].Get());
 	DrawRenderItems(m_graphicsCommandList.Get(), m_renderItemLayer[(int)RenderLayer::AlphaTestedTreeSprites]);
+
+	m_graphicsCommandList->SetPipelineState(m_PSOs["testSprites"].Get());
+	DrawRenderItems(m_graphicsCommandList.Get(), m_renderItemLayer[(int)RenderLayer::Opaque]);
 
 	m_graphicsCommandList->SetPipelineState(m_PSOs["transparent"].Get());
 	DrawRenderItems(m_graphicsCommandList.Get(), m_renderItemLayer[(int)RenderLayer::Transparent]);
@@ -423,10 +427,22 @@ void ShapesApp::LoadTextures() {
 		fenceTex->UploadHeap
 	));
 
+	auto testTree = std::make_unique<Texture>();
+	testTree->Name = "testTreeTex";
+	testTree->Filename = L"Textures/tree01S.dds";
+	ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(
+		m_device.Get(),
+		m_graphicsCommandList.Get(),
+		testTree->Filename.c_str(),
+		testTree->Resource,
+		testTree->UploadHeap
+	));
+
 	m_textures[grassTex->Name] = std::move(grassTex);
 	m_textures[waterTex->Name] = std::move(waterTex);
 	m_textures[fenceTex->Name] = std::move(fenceTex);
 	m_textures[treeArrayTex->Name] = std::move(treeArrayTex);
+	m_textures[testTree->Name] = std::move(testTree);
 }
 
 void ShapesApp::BuildRootSignature() {
@@ -435,18 +451,19 @@ void ShapesApp::BuildRootSignature() {
 	texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
 
 	// Root parameter can be a table, a root descriptor or a root constant
-	CD3DX12_ROOT_PARAMETER slotRootParameter[4];
+	CD3DX12_ROOT_PARAMETER slotRootParameter[5];
 
 	// Order from most frequent to least frequent for performance
 	slotRootParameter[0].InitAsDescriptorTable(1, &texTable, D3D12_SHADER_VISIBILITY_PIXEL);
 	slotRootParameter[1].InitAsConstantBufferView(0);
 	slotRootParameter[2].InitAsConstantBufferView(1);
 	slotRootParameter[3].InitAsConstantBufferView(2);
+	slotRootParameter[4].InitAsConstantBufferView(3);
 
 	auto staticSamplers = GetStaticSamplers();
 
 	// A root signature is an array of root parameters.
-	CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc(4, slotRootParameter, (UINT)staticSamplers.size(), staticSamplers.data(), D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+	CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc(5, slotRootParameter, (UINT)staticSamplers.size(), staticSamplers.data(), D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
 	// Create a root signature with a single slot which points to a descriptor range consisting of a single constant buffer
 	ComPtr<ID3DBlob> serializedRootSig = nullptr;
@@ -465,7 +482,7 @@ void ShapesApp::BuildRootSignature() {
 
 void ShapesApp::BuildDescriptorHeaps() {
 	D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
-	srvHeapDesc.NumDescriptors = 4;
+	srvHeapDesc.NumDescriptors = 5;
 	srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	ThrowIfFailed(m_device->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&m_srvDescriptorHeap)));
@@ -475,6 +492,7 @@ void ShapesApp::BuildDescriptorHeaps() {
 	auto grassTex = m_textures["grassTex"]->Resource;
 	auto waterTex = m_textures["waterTex"]->Resource;
 	auto fenceTex = m_textures["fenceTex"]->Resource;
+	auto testTreeTex = m_textures["testTreeTex"]->Resource;
 	auto treeArrayTex = m_textures["treeArrayTex"]->Resource;
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
@@ -493,6 +511,11 @@ void ShapesApp::BuildDescriptorHeaps() {
 	hDescriptor.Offset(1, m_cbvSrvDescriptorSize);
 	srvDesc.Format = fenceTex->GetDesc().Format;
 	m_device->CreateShaderResourceView(fenceTex.Get(), &srvDesc, hDescriptor);
+
+	// next descriptor
+	hDescriptor.Offset(1, m_cbvSrvDescriptorSize);
+	srvDesc.Format = testTreeTex->GetDesc().Format;
+	m_device->CreateShaderResourceView(testTreeTex.Get(), &srvDesc, hDescriptor);
 
 	// next descriptor
 	hDescriptor.Offset(1, m_cbvSrvUavDescriptorSize);
@@ -529,6 +552,9 @@ void ShapesApp::BuildShadersAndInputLayout() {
 	m_shaders["treeSpriteVS"] = CompileShader(L"Shaders\\TreeSprite.hlsl", nullptr, "VS", "vs_5_0");
 	m_shaders["treeSpriteGS"] = CompileShader(L"Shaders\\TreeSprite.hlsl", nullptr, "GS", "gs_5_0");
 	m_shaders["treeSpritePS"] = CompileShader(L"Shaders\\TreeSprite.hlsl", alphaTestDefines, "PS", "ps_5_0");
+
+	m_shaders["testTreeSpriteVS"] = CompileShader(L"Shaders\\TestSprite.hlsl", nullptr, "VS", "vs_5_0");
+	m_shaders["testTreeSpritePS"] = CompileShader(L"Shaders\\TestSprite.hlsl", nullptr, "PS", "ps_5_0");
 
 	m_inputLayout = {
 		{"POSITION", 0 , DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
