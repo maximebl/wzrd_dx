@@ -2,6 +2,21 @@
 
 Texture2D gDiffuseMap : register(t0);
 
+cbuffer cbMaterial : register(b2)
+{
+	float4   gDiffuseAlbedo;
+    float3   gFresnelR0;
+    float    gRoughness;
+	float4x4 gMatTransform;
+};
+
+SamplerState gsamPointWrap        : register(s0);
+SamplerState gsamPointClamp       : register(s1);
+SamplerState gsamLinearWrap       : register(s2);
+SamplerState gsamLinearClamp      : register(s3);
+SamplerState gsamAnisotropicWrap  : register(s4);
+SamplerState gsamAnisotropicClamp : register(s5);
+
 // Constant data that varies per material.
 cbuffer cbPass : register(b1)
 {
@@ -107,7 +122,7 @@ float4 PS(GeoOut pin) : SV_Target
 	float4 diffuseAlbedo = gDiffuseMap.Sample(gsamAnisotropicWrap, uvw) * gDiffuseAlbedo;
 
 #ifdef ALPHA_TEST
-	clip(diffuseAlbedo = gDiffuseMap.a - 0.1f);
+	//clip(diffuseAlbedo = gDiffuseMap.a - 0.1f);
 #endif
 
 	pin.NormalW = normalize(pin.NormalW);

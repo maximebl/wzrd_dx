@@ -143,7 +143,7 @@ void ShapesApp::UpdateObjectCBs(const GameTimer& gameTimer) {
 	auto currentObjectCB = m_currentFrameResource->ObjectCB.get();
 	for (auto& e : m_allRenderItems)
 	{
-		// Only update the cbuffer data if the constants have changed.
+		// Only update the cbuffer data if the constants have changed.ta
 		// This needs to be tracked per frame resource
 		if (e->numFramesDirty > 0)
 		{
@@ -826,8 +826,8 @@ void ShapesApp::BuildTestSpriteGeometry() {
 	ThrowIfFailed(D3DCreateBlob(ibByteSize, &geo->IndexBufferCPU));
 	CopyMemory(geo->IndexBufferCPU->GetBufferPointer(), indices.data(), ibByteSize);
 
-	geo->VertexBufferGPU = CreateDefaultBuffer(m_device.Get(), m_graphicsCommandList.Get, vertices.data(), vbByteSize, geo->VertexBufferUploader);
-	geo->IndexBufferGPU = CreateDefaultBuffer(m_device.Get(), m_graphicsCommandList.Get, indices.data(), ibByteSize, geo->IndexBufferUploader);
+	geo->VertexBufferGPU = CreateDefaultBuffer(m_device.Get(), m_graphicsCommandList.Get(), vertices.data(), vbByteSize, geo->VertexBufferUploader);
+	geo->IndexBufferGPU = CreateDefaultBuffer(m_device.Get(), m_graphicsCommandList.Get(), indices.data(), ibByteSize, geo->IndexBufferUploader);
 
 	geo->VertexByteStride = sizeof(TestSpriteVertex);
 	geo->VertexBufferByteSize = vbByteSize;
@@ -1053,18 +1053,18 @@ void ShapesApp::BuildPSOs() {
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC testSpritePsoDesc = treeSpritePsoDesc;
 	testSpritePsoDesc.VS =
 	{
-		reinterpret_cast<BYTE*>(m_shaders["testTreeSpriteVS"]),
+		reinterpret_cast<BYTE*>(m_shaders["testTreeSpriteVS"]->GetBufferPointer()),
 		m_shaders["testTreeSpriteVS"]->GetBufferSize()
 	};
 	testSpritePsoDesc.GS =
 	{
-		reinterpret_cast<BYTE*>(m_shaders["testTreeSpriteGS"]),
+		reinterpret_cast<BYTE*>(m_shaders["testTreeSpriteGS"]->GetBufferPointer()),
 		m_shaders["testTreeSpriteGS"]->GetBufferSize()
 	};
 	testSpritePsoDesc.PS =
 	{
-		reinterpret_cast<BYTE*>(m_shaders["testTreeSpriteVS"]),
-		m_shaders["testTreeSpriteVS"]->GetBufferSize()
+		reinterpret_cast<BYTE*>(m_shaders["testTreeSpritePS"]->GetBufferPointer()),
+		m_shaders["testTreeSpritePS"]->GetBufferSize()
 	};
 	ThrowIfFailed(m_device->CreateGraphicsPipelineState(&testSpritePsoDesc, IID_PPV_ARGS(&m_PSOs["testSprites"])));
 }
