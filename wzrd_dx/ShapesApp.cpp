@@ -74,7 +74,7 @@ void ShapesApp::render() {
 	DrawRenderItems(m_graphicsCommandList.Get(), m_renderItemLayer[(int)RenderLayer::AlphaTestedTreeSprites]);
 
 	m_graphicsCommandList->SetPipelineState(m_PSOs["testSprites"].Get());
-	DrawRenderItems(m_graphicsCommandList.Get(), m_renderItemLayer[(int)RenderLayer::Opaque]);
+	DrawRenderItems(m_graphicsCommandList.Get(), m_renderItemLayer[(int)RenderLayer::AlphaTestedTreeSprites]);
 
 	m_graphicsCommandList->SetPipelineState(m_PSOs["transparent"].Get());
 	DrawRenderItems(m_graphicsCommandList.Get(), m_renderItemLayer[(int)RenderLayer::Transparent]);
@@ -451,19 +451,18 @@ void ShapesApp::BuildRootSignature() {
 	texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
 
 	// Root parameter can be a table, a root descriptor or a root constant
-	CD3DX12_ROOT_PARAMETER slotRootParameter[5];
+	CD3DX12_ROOT_PARAMETER slotRootParameter[4];
 
 	// Order from most frequent to least frequent for performance
 	slotRootParameter[0].InitAsDescriptorTable(1, &texTable, D3D12_SHADER_VISIBILITY_PIXEL);
 	slotRootParameter[1].InitAsConstantBufferView(0);
 	slotRootParameter[2].InitAsConstantBufferView(1);
 	slotRootParameter[3].InitAsConstantBufferView(2);
-	slotRootParameter[4].InitAsConstantBufferView(3);
 
 	auto staticSamplers = GetStaticSamplers();
 
 	// A root signature is an array of root parameters.
-	CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc(5, slotRootParameter, (UINT)staticSamplers.size(), staticSamplers.data(), D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+	CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc(4, slotRootParameter, (UINT)staticSamplers.size(), staticSamplers.data(), D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
 	// Create a root signature with a single slot which points to a descriptor range consisting of a single constant buffer
 	ComPtr<ID3DBlob> serializedRootSig = nullptr;
@@ -554,7 +553,8 @@ void ShapesApp::BuildShadersAndInputLayout() {
 	m_shaders["treeSpritePS"] = CompileShader(L"Shaders\\TreeSprite.hlsl", alphaTestDefines, "PS", "ps_5_0");
 
 	m_shaders["testTreeSpriteVS"] = CompileShader(L"Shaders\\TestSprite.hlsl", nullptr, "VS", "vs_5_0");
-	m_shaders["testTreeSpritePS"] = CompileShader(L"Shaders\\TestSprite.hlsl", nullptr, "PS", "ps_5_0");
+	m_shaders["testTreeSpriteGS"] = CompileShader(L"Shaders\\TestSprite.hlsl", nullptr, "GS", "gs_5_0");
+	m_shaders["testTreeSpritePS"] = CompileShader(L"Shaders\\TestSprite.hlsl", alphaTestDefines, "PS", "ps_5_0");
 
 	m_inputLayout = {
 		{"POSITION", 0 , DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
@@ -791,8 +791,56 @@ void ShapesApp::BuildTreeSpritesGeometry() {
 void ShapesApp::BuildTestSpriteGeometry() {
 	struct TestSpriteVertex {
 		XMFLOAT3 Pos;
-		XMFLOAT2 
+		XMFLOAT2 Size;
 	};
+
+	static const int testCount = 1;
+	std::array<TestSpriteVertex, 16> vertices;
+	for (UINT i = 0; i < testCount; ++i)
+	{
+		float x = MathHelper::RandF(-45.0f, 45.0f);
+		float z = MathHelper::RandF(-45.0f, 45.0f);
+		float y = GetHillsHeight(x, z);
+
+		y += 8.0f;
+
+		vertices[i].Pos = XMFLOAT3(x, y, z);
+		vertices[i].Size = XMFLOAT2(20.0f, 20.0f);
+	}
+
+	std::array<std::uint16_t, 16> indices =
+	{
+		0, 1, 2, 3, 4, 5, 6, 7,
+		8, 9, 10, 11, 12, 13, 14, 15
+	};
+
+	const UINT vbByteSize = (UINT)vertices.size() * sizeof(TestSpriteVertex);
+	const UINT ibByteSize = (UINT)indices.size() * sizeof(uint16_t);
+
+	auto geo = std::make_unique <MeshGeometry>();
+	geo->Name = "testSpriteGeo";
+
+	ThrowIfFailed(D3DCreateBlob(vbByteSize, &geo->VertexBufferCPU));
+	CopyMemory(geo->VertexBufferCPU->GetBufferPointer(), vertices.data(), vbByteSize);
+	
+	ThrowIfFailed(D3DCreateBlob(ibByteSize, &geo->IndexBufferCPU));
+	CopyMemory(geo->IndexBufferCPU->GetBufferPointer(), indices.data(), ibByteSize);
+
+	geo->VertexBufferGPU = CreateDefaultBuffer(m_device.Get(), m_graphicsCommandList.Get, vertices.data(), vbByteSize, geo->VertexBufferUploader);
+	geo->IndexBufferGPU = CreateDefaultBuffer(m_device.Get(), m_graphicsCommandList.Get, indices.data(), ibByteSize, geo->IndexBufferUploader);
+
+	geo->VertexByteStride = sizeof(TestSpriteVertex);
+	geo->VertexBufferByteSize = vbByteSize;
+	geo->IndexFormat = DXGI_FORMAT_R16_UINT;
+	geo->IndexBufferByteSize = ibByteSize;
+
+	SubmeshGeometry submesh;
+	submesh.IndexCount = (UINT)indices.size();
+	submesh.StartIndexLocation = 0;
+	submesh.BaseVertexLocation = 0;
+
+	geo->DrawArgs["points2"] = submesh;
+	m_geometries["testSpriteGeo"] = std::move(geo);
 }
 
 void ShapesApp::BuildMaterials() {
@@ -828,10 +876,19 @@ void ShapesApp::BuildMaterials() {
 	treeSprites->FresnelR0 = XMFLOAT3(0.01f, 0.01f, 0.01f);
 	treeSprites->Roughness = 0.125f;
 
+	auto testSprites = std::make_unique<Material>();
+	testSprites->Name = "testTreeTex";
+	testSprites->MatCBIndex = 4;
+	testSprites->DiffuseSrvHeapIndex = 4;
+	testSprites->DiffuseAlbedo = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	testSprites->FresnelR0 = XMFLOAT3(0.01f, 0.01f, 0.01f);
+	testSprites->Roughness = 0.125f;
+
 	m_materials["grass"] = std::move(grass);
 	m_materials["water"] = std::move(water);
 	m_materials["wirefence"] = std::move(wirefence);
 	m_materials["treeSprites"] = std::move(treeSprites);
+	m_materials["testTreeTex"] = std::move(testSprites);
 }
 
 void ShapesApp::BuildRenderItems() {
@@ -887,10 +944,23 @@ void ShapesApp::BuildRenderItems() {
 
 	m_renderItemLayer[(int)RenderLayer::AlphaTestedTreeSprites].push_back(treeSpritesRenderItem.get());
 	
+	auto testSpritesRenderItem = std::make_unique<RenderItem>();
+	testSpritesRenderItem->World = MathHelper::Identity4x4();
+	testSpritesRenderItem->objCBIndex = 4;
+	testSpritesRenderItem->Mat = m_materials["treeSprites"].get();
+	testSpritesRenderItem->Geo = m_geometries["testSpriteGeo"].get();
+	testSpritesRenderItem->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_POINTLIST;
+	testSpritesRenderItem->IndexCount = testSpritesRenderItem->Geo->DrawArgs["points2"].IndexCount;
+	testSpritesRenderItem->StartIndexLocation = testSpritesRenderItem->Geo->DrawArgs["points2"].StartIndexLocation;
+	testSpritesRenderItem->BaseVertexLocation = testSpritesRenderItem->Geo->DrawArgs["points2"].BaseVertexLocation;
+
+	m_renderItemLayer[(int)RenderLayer::AlphaTestedTestSprites].push_back(testSpritesRenderItem.get());
+
 	m_allRenderItems.push_back(std::move(wavesRenderItem));
 	m_allRenderItems.push_back(std::move(gridRenderItem));
 	m_allRenderItems.push_back(std::move(boxRenderItem));
 	m_allRenderItems.push_back(std::move(treeSpritesRenderItem));
+	m_allRenderItems.push_back(std::move(testSpritesRenderItem));
 }
 
 void ShapesApp::BuildFrameResources() {
@@ -978,4 +1048,23 @@ void ShapesApp::BuildPSOs() {
 	treeSpritePsoDesc.InputLayout = { m_treeSpriteInputLayout.data(), (UINT)m_treeSpriteInputLayout.size() };
 	treeSpritePsoDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
 	ThrowIfFailed(m_device->CreateGraphicsPipelineState(&treeSpritePsoDesc, IID_PPV_ARGS(&m_PSOs["treeSprites"])));
+
+	// PSO for test trees
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC testSpritePsoDesc = treeSpritePsoDesc;
+	testSpritePsoDesc.VS =
+	{
+		reinterpret_cast<BYTE*>(m_shaders["testTreeSpriteVS"]),
+		m_shaders["testTreeSpriteVS"]->GetBufferSize()
+	};
+	testSpritePsoDesc.GS =
+	{
+		reinterpret_cast<BYTE*>(m_shaders["testTreeSpriteGS"]),
+		m_shaders["testTreeSpriteGS"]->GetBufferSize()
+	};
+	testSpritePsoDesc.PS =
+	{
+		reinterpret_cast<BYTE*>(m_shaders["testTreeSpriteVS"]),
+		m_shaders["testTreeSpriteVS"]->GetBufferSize()
+	};
+	ThrowIfFailed(m_device->CreateGraphicsPipelineState(&testSpritePsoDesc, IID_PPV_ARGS(&m_PSOs["testSprites"])));
 }
