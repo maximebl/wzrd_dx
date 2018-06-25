@@ -2,8 +2,7 @@
 
 Texture2D gDiffuseMap : register(t0);
 
-cbuffer cbMaterial : register(b2)
-{
+cbuffer cbMaterial : register(b2) {
 	float4   gDiffuseAlbedo;
     float3   gFresnelR0;
     float    gRoughness;
@@ -122,7 +121,7 @@ float4 PS(GeoOut pin) : SV_Target
 	float4 diffuseAlbedo = gDiffuseMap.Sample(gsamAnisotropicWrap, uvw) * gDiffuseAlbedo;
 
 #ifdef ALPHA_TEST
-	//clip(diffuseAlbedo = gDiffuseMap.a - 0.1f);
+	clip(diffuseAlbedo.a - 0.1f);
 #endif
 
 	pin.NormalW = normalize(pin.NormalW);

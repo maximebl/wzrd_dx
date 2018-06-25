@@ -70,8 +70,8 @@ void ShapesApp::render() {
 	m_graphicsCommandList->SetPipelineState(m_PSOs["alphaTested"].Get());
 	DrawRenderItems(m_graphicsCommandList.Get(), m_renderItemLayer[(int)RenderLayer::AlphaTested]);
 
-	m_graphicsCommandList->SetPipelineState(m_PSOs["treeSprites"].Get());
-	DrawRenderItems(m_graphicsCommandList.Get(), m_renderItemLayer[(int)RenderLayer::AlphaTestedTreeSprites]);
+	//m_graphicsCommandList->SetPipelineState(m_PSOs["treeSprites"].Get());
+	//DrawRenderItems(m_graphicsCommandList.Get(), m_renderItemLayer[(int)RenderLayer::AlphaTestedTreeSprites]);
 
 	m_graphicsCommandList->SetPipelineState(m_PSOs["testSprites"].Get());
 	DrawRenderItems(m_graphicsCommandList.Get(), m_renderItemLayer[(int)RenderLayer::AlphaTestedTreeSprites]);
@@ -529,8 +529,7 @@ void ShapesApp::BuildDescriptorHeaps() {
 	m_device->CreateShaderResourceView(treeArrayTex.Get(), &srvDesc, hDescriptor);
 }
 
-void ShapesApp::BuildShadersAndInputLayout() {
-
+void ShapesApp::BuildShadersAndInputLayout() { 
 	const D3D_SHADER_MACRO defines[] =
 	{
 		"FOG", "1",
