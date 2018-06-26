@@ -42,6 +42,11 @@ struct RenderItem
 	int BaseVertexLocation = 0;
 };
 
+struct TestSpriteVertex {
+	XMFLOAT3 Pos;
+	XMFLOAT2 Size;
+};
+
 class ShapesApp : public AbstractRenderer {
 public:
 	bool init();
@@ -92,6 +97,7 @@ public:
 	std::vector<std::unique_ptr<FrameResource>> m_frameResources;
 	
 	RenderItem* m_wavesRenderItem = nullptr;
+	RenderItem* m_treeSpriteRenderItem = nullptr;
 	std::vector<RenderItem*> m_renderItemLayer[(int)RenderLayer::Count];
 	std::unique_ptr<Waves> m_waves;
 	std::unique_ptr<Particles> m_particles;
@@ -103,7 +109,6 @@ private:
 	FrameResource* m_currentFrameResource = nullptr;
 	PassConstants m_mainPassCB;
 	UINT m_cbvSrvDescriptorSize = 0;
-
 	float m_sunTheta = 1.25f * XM_PI;
 	float m_sunPhi = XM_PIDIV4;
 };

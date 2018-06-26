@@ -222,7 +222,11 @@ void ShapesApp::UpdateMainPassCB(const GameTimer& gameTimer) {
 }
 
 void ShapesApp::UpdateParticles(const GameTimer& gameTimer) {
-	m_particles->Update(gameTimer.DeltaTime());
+	//m_particles->Update(gameTimer.DeltaTime());
+
+	/*for (int i = 0; i < ???; ++i)
+	{
+	}*/
 }
 
 void ShapesApp::UpdateWaves(const GameTimer& gameTimer) {
@@ -793,11 +797,6 @@ void ShapesApp::BuildTreeSpritesGeometry() {
 }
 
 void ShapesApp::BuildTestSpriteGeometry() {
-	struct TestSpriteVertex {
-		XMFLOAT3 Pos;
-		XMFLOAT2 Size;
-	};
-
 	static const int testCount = 1;
 	std::array<TestSpriteVertex, 16> vertices;
 	for (UINT i = 0; i < testCount; ++i)
@@ -823,7 +822,7 @@ void ShapesApp::BuildTestSpriteGeometry() {
 
 	auto geo = std::make_unique <MeshGeometry>();
 	geo->Name = "testSpriteGeo";
-
+	
 	ThrowIfFailed(D3DCreateBlob(vbByteSize, &geo->VertexBufferCPU));
 	CopyMemory(geo->VertexBufferCPU->GetBufferPointer(), vertices.data(), vbByteSize);
 	
@@ -895,8 +894,7 @@ void ShapesApp::BuildMaterials() {
 	m_materials["testTreeTex"] = std::move(testSprites);
 }
 
-void ShapesApp::BuildRenderItems() {
-	auto wavesRenderItem = std::make_unique<RenderItem>();
+void ShapesApp::BuildRenderItems() { auto wavesRenderItem = std::make_unique<RenderItem>();
 	wavesRenderItem->World = MathHelper::Identity4x4();
 	XMStoreFloat4x4(&wavesRenderItem->TexTransform, XMMatrixScaling(5.0f, 5.0f, 1.0f));
 	wavesRenderItem->objCBIndex = 0;
@@ -957,6 +955,8 @@ void ShapesApp::BuildRenderItems() {
 	testSpritesRenderItem->IndexCount = testSpritesRenderItem->Geo->DrawArgs["points2"].IndexCount;
 	testSpritesRenderItem->StartIndexLocation = testSpritesRenderItem->Geo->DrawArgs["points2"].StartIndexLocation;
 	testSpritesRenderItem->BaseVertexLocation = testSpritesRenderItem->Geo->DrawArgs["points2"].BaseVertexLocation;
+
+	m_treeSpriteRenderItem = testSpritesRenderItem.get();
 
 	m_renderItemLayer[(int)RenderLayer::AlphaTestedTestSprites].push_back(testSpritesRenderItem.get());
 
