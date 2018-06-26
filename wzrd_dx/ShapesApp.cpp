@@ -67,14 +67,14 @@ void ShapesApp::render() {
 
 	DrawRenderItems(m_graphicsCommandList.Get(), m_renderItemLayer[(int)RenderLayer::Opaque]);
 
-	m_graphicsCommandList->SetPipelineState(m_PSOs["alphaTested"].Get());
-	DrawRenderItems(m_graphicsCommandList.Get(), m_renderItemLayer[(int)RenderLayer::AlphaTested]);
+	//m_graphicsCommandList->SetPipelineState(m_PSOs["alphaTested"].Get());
+	//DrawRenderItems(m_graphicsCommandList.Get(), m_renderItemLayer[(int)RenderLayer::AlphaTested]);
 
 	//m_graphicsCommandList->SetPipelineState(m_PSOs["treeSprites"].Get());
 	//DrawRenderItems(m_graphicsCommandList.Get(), m_renderItemLayer[(int)RenderLayer::AlphaTestedTreeSprites]);
 
 	m_graphicsCommandList->SetPipelineState(m_PSOs["testSprites"].Get());
-	DrawRenderItems(m_graphicsCommandList.Get(), m_renderItemLayer[(int)RenderLayer::AlphaTestedTreeSprites]);
+	DrawRenderItems(m_graphicsCommandList.Get(), m_renderItemLayer[(int)RenderLayer::AlphaTestedTestSprites]);
 
 	m_graphicsCommandList->SetPipelineState(m_PSOs["transparent"].Get());
 	DrawRenderItems(m_graphicsCommandList.Get(), m_renderItemLayer[(int)RenderLayer::Transparent]);
@@ -221,6 +221,10 @@ void ShapesApp::UpdateMainPassCB(const GameTimer& gameTimer) {
 	currentPassCB->CopyData(0, m_mainPassCB);
 }
 
+void ShapesApp::UpdateParticles(const GameTimer& gameTimer) {
+	m_particles->Update(gameTimer.DeltaTime());
+}
+
 void ShapesApp::UpdateWaves(const GameTimer& gameTimer) {
 	// Every quarter second, generate a random wave.
 	static float t_base = 0.0f;
@@ -280,6 +284,7 @@ void ShapesApp::update(GameTimer& gameTimer) {
 	UpdateMaterialCBs(gameTimer);
 	UpdateMainPassCB(gameTimer);
 	UpdateWaves(gameTimer);
+	UpdateParticles(gameTimer);
 }
 
 void ShapesApp::AnimateMaterials(const GameTimer& gameTimer) {
@@ -803,8 +808,8 @@ void ShapesApp::BuildTestSpriteGeometry() {
 
 		y += 8.0f;
 
-		vertices[i].Pos = XMFLOAT3(x, y, z);
-		vertices[i].Size = XMFLOAT2(20.0f, 20.0f);
+		vertices[i].Pos = XMFLOAT3(0, 0, 0);
+		vertices[i].Size = XMFLOAT2(1.0f, 1.0f);
 	}
 
 	std::array<std::uint16_t, 16> indices =

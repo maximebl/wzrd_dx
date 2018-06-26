@@ -3,6 +3,7 @@
 #include "MeshGeometry.h"
 #include "GameTimer.h"
 #include "Waves.h"
+#include "Particles.h"
 #include "FrameResource.h"
 #include "Material.h"
 #include "Texture.h"
@@ -57,7 +58,7 @@ public:
 	void BuildMaterials();
 	void BuildTreeSpritesGeometry();
 	void BuildTestSpriteGeometry();
-
+	
 	float GetHillsHeight(float x, float y) const;
 	DirectX::XMFLOAT3 GetHillsNormal(float x, float z) const;
 
@@ -75,6 +76,7 @@ public:
 	void UpdateObjectCBs(const GameTimer& gt);
 	void UpdateMainPassCB(const GameTimer& gt);
 	void UpdateWaves(const GameTimer& gt);
+	void UpdateParticles(const GameTimer& gt);
 	void UpdateMaterialCBs(const GameTimer& gt);
 	void AnimateMaterials(const GameTimer& gt);
 	GameTimer m_timer;
@@ -92,6 +94,7 @@ public:
 	RenderItem* m_wavesRenderItem = nullptr;
 	std::vector<RenderItem*> m_renderItemLayer[(int)RenderLayer::Count];
 	std::unique_ptr<Waves> m_waves;
+	std::unique_ptr<Particles> m_particles;
 	std::vector<std::unique_ptr<RenderItem>> m_allRenderItems;
 
 	Camera m_camera;
