@@ -9,6 +9,7 @@ bool ShapesApp::init() {
 	m_camera.SetPosition(0.0f, 2.0f, -15.0f);
 
 	m_waves = std::make_unique<Waves>(128, 128, 1.0f, 0.03f, 4.0f, 0.2f);
+	m_particles = std::make_unique<Particles>(0.0f, 5.0f);
 
 	LoadTextures();
 	BuildRootSignature();
@@ -222,11 +223,19 @@ void ShapesApp::UpdateMainPassCB(const GameTimer& gameTimer) {
 }
 
 void ShapesApp::UpdateParticles(const GameTimer& gameTimer) {
-	//m_particles->Update(gameTimer.DeltaTime());
 
-	/*for (int i = 0; i < ???; ++i)
+	auto newParticlesVB = m_currentFrameResource->ParticlesVB.get();
+
+	m_particles->Update();
+
+	for (int i = 0; i < m_particles->ParticleCount(); i++)
 	{
-	}*/
+		TestSpriteVertex v;
+		v.Pos = m_particles->Position(i);
+		newParticlesVB->CopyData(i, v);
+	}
+
+	m_treeSpriteRenderItem->Geo->VertexBufferGPU = newParticlesVB->Resource();
 }
 
 void ShapesApp::UpdateWaves(const GameTimer& gameTimer) {
