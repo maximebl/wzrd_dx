@@ -67,15 +67,15 @@ void ShapesApp::render() {
 
 	DrawRenderItems(m_graphicsCommandList.Get(), m_renderItemLayer[(int)RenderLayer::Opaque]);
 
-	//m_graphicsCommandList->SetPipelineState(m_PSOs["alphaTested"].Get());
-	//DrawRenderItems(m_graphicsCommandList.Get(), m_renderItemLayer[(int)RenderLayer::AlphaTested]);
+	m_graphicsCommandList->SetPipelineState(m_PSOs["alphaTested"].Get());
+	DrawRenderItems(m_graphicsCommandList.Get(), m_renderItemLayer[(int)RenderLayer::AlphaTested]);
 
-	//m_graphicsCommandList->SetPipelineState(m_PSOs["treeSprites"].Get());
-	//DrawRenderItems(m_graphicsCommandList.Get(), m_renderItemLayer[(int)RenderLayer::AlphaTestedTreeSprites]);
+	m_graphicsCommandList->SetPipelineState(m_PSOs["treeSprites"].Get());
+	DrawRenderItems(m_graphicsCommandList.Get(), m_renderItemLayer[(int)RenderLayer::AlphaTestedTreeSprites]);
 
-	m_graphicsCommandList->SetPipelineState(m_PSOs["testSprites"].Get());
+	/*m_graphicsCommandList->SetPipelineState(m_PSOs["testSprites"].Get());
 	DrawRenderItems(m_graphicsCommandList.Get(), m_renderItemLayer[(int)RenderLayer::AlphaTestedTestSprites]);
-
+*/
 	m_graphicsCommandList->SetPipelineState(m_PSOs["transparent"].Get());
 	DrawRenderItems(m_graphicsCommandList.Get(), m_renderItemLayer[(int)RenderLayer::Transparent]);
 
@@ -223,18 +223,18 @@ void ShapesApp::UpdateMainPassCB(const GameTimer& gameTimer) {
 
 void ShapesApp::UpdateParticles(const GameTimer& gameTimer) {
 
-	auto newParticlesVB = m_currentFrameResource->ParticlesVB.get();
+	//auto newParticlesVB = m_currentFrameResource->ParticlesVB.get();
 
-	m_particles->Update(gameTimer.DeltaTime());
+	//m_particles->Update(gameTimer.DeltaTime());
 
-	for (int i = 0; i < m_particles->ParticleCount(); i++)
-	{
-		TestSpriteVertex v;
-		v.Pos = m_particles->Position(i);
-		newParticlesVB->CopyData(i, v);
-	}
+	//for (int i = 0; i < m_particles->ParticleCount(); i++)
+	//{
+	//	TestSpriteVertex v;
+	//	v.Pos = m_particles->Position(i);
+	//	newParticlesVB->CopyData(i, v);
+	//}
 
-	m_treeSpriteRenderItem->Geo->VertexBufferGPU = newParticlesVB->Resource();
+	//m_treeSpriteRenderItem->Geo->VertexBufferGPU = newParticlesVB->Resource();
 }
 
 void ShapesApp::UpdateWaves(const GameTimer& gameTimer) {

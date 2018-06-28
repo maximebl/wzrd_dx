@@ -9,7 +9,7 @@ FrameResource::FrameResource(ID3D12Device* device, UINT passCount, UINT objectCo
 	PassCB = std::make_unique<UploadBuffer<PassConstants>>(device, passCount, true);
 	ObjectCB = std::make_unique<UploadBuffer<AbstractRenderer::ObjectConstants>>(device, objectCount, true);
 	MaterialCB = std::make_unique<UploadBuffer<MaterialConstants>>(device, materialCount, true);
-
+	ParticlesVB = std::make_unique<UploadBuffer<TestSpriteVertex>>(device, 1, false);
 	WavesVB = std::make_unique<UploadBuffer<AbstractRenderer::Vertex2>>(device, waveVertCount, false);
 }
 
