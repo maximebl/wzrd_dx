@@ -42,11 +42,6 @@ struct RenderItem
 	int BaseVertexLocation = 0;
 };
 
-struct TestSpriteVertex {
-	XMFLOAT3 Pos;
-	XMFLOAT2 Size;
-};
-
 class ShapesApp : public AbstractRenderer {
 public:
 	bool init();

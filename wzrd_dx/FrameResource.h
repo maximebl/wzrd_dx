@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Utilities.h"
+#include "Particles.h"
 #include "MathHelper.h"
 #include "UploadBuffer.h"
 #include "App.h"

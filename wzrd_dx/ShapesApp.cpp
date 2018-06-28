@@ -9,7 +9,6 @@ bool ShapesApp::init() {
 	m_camera.SetPosition(0.0f, 2.0f, -15.0f);
 
 	m_waves = std::make_unique<Waves>(128, 128, 1.0f, 0.03f, 4.0f, 0.2f);
-	m_particles = std::make_unique<Particles>(0.0f, 5.0f);
 
 	LoadTextures();
 	BuildRootSignature();
@@ -226,7 +225,7 @@ void ShapesApp::UpdateParticles(const GameTimer& gameTimer) {
 
 	auto newParticlesVB = m_currentFrameResource->ParticlesVB.get();
 
-	m_particles->Update();
+	m_particles->Update(gameTimer.DeltaTime());
 
 	for (int i = 0; i < m_particles->ParticleCount(); i++)
 	{
@@ -806,25 +805,19 @@ void ShapesApp::BuildTreeSpritesGeometry() {
 }
 
 void ShapesApp::BuildTestSpriteGeometry() {
-	static const int testCount = 1;
-	std::array<TestSpriteVertex, 16> vertices;
-	for (UINT i = 0; i < testCount; ++i)
+	const int particleCount = 1;
+	const DirectX::XMFLOAT3 startPosition = { 0.0f, 0.0f, 0.0f };
+
+	std::array<TestSpriteVertex, particleCount> vertices;
+	std::array<std::uint16_t, particleCount> indices = {0};
+
+	m_particles = std::make_unique<Particles>(startPosition, particleCount);
+
+	for (UINT i = 0; i < m_particles->ParticleCount(); ++i)
 	{
-		float x = MathHelper::RandF(-45.0f, 45.0f);
-		float z = MathHelper::RandF(-45.0f, 45.0f);
-		float y = GetHillsHeight(x, z);
-
-		y += 8.0f;
-
-		vertices[i].Pos = XMFLOAT3(0, 0, 0);
+		vertices[i].Pos = startPosition;
 		vertices[i].Size = XMFLOAT2(1.0f, 1.0f);
 	}
-
-	std::array<std::uint16_t, 16> indices =
-	{
-		0, 1, 2, 3, 4, 5, 6, 7,
-		8, 9, 10, 11, 12, 13, 14, 15
-	};
 
 	const UINT vbByteSize = (UINT)vertices.size() * sizeof(TestSpriteVertex);
 	const UINT ibByteSize = (UINT)indices.size() * sizeof(uint16_t);
