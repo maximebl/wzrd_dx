@@ -73,9 +73,9 @@ void ShapesApp::render() {
 	m_graphicsCommandList->SetPipelineState(m_PSOs["treeSprites"].Get());
 	DrawRenderItems(m_graphicsCommandList.Get(), m_renderItemLayer[(int)RenderLayer::AlphaTestedTreeSprites]);
 
-	/*m_graphicsCommandList->SetPipelineState(m_PSOs["testSprites"].Get());
+	m_graphicsCommandList->SetPipelineState(m_PSOs["testSprites"].Get());
 	DrawRenderItems(m_graphicsCommandList.Get(), m_renderItemLayer[(int)RenderLayer::AlphaTestedTestSprites]);
-*/
+
 	m_graphicsCommandList->SetPipelineState(m_PSOs["transparent"].Get());
 	DrawRenderItems(m_graphicsCommandList.Get(), m_renderItemLayer[(int)RenderLayer::Transparent]);
 
@@ -223,18 +223,18 @@ void ShapesApp::UpdateMainPassCB(const GameTimer& gameTimer) {
 
 void ShapesApp::UpdateParticles(const GameTimer& gameTimer) {
 
-	//auto newParticlesVB = m_currentFrameResource->ParticlesVB.get();
+	auto newParticlesVB = m_currentFrameResource->ParticlesVB.get();
 
-	//m_particles->Update(gameTimer.DeltaTime());
+	m_particles->Update(gameTimer.DeltaTime());
 
-	//for (int i = 0; i < m_particles->ParticleCount(); i++)
-	//{
-	//	TestSpriteVertex v;
-	//	v.Pos = m_particles->Position(i);
-	//	newParticlesVB->CopyData(i, v);
-	//}
+	for (int i = 0; i < m_particles->ParticleCount(); i++)
+	{
+		TestSpriteVertex v;
+		v.Pos = m_particles->Position(i);
+		newParticlesVB->CopyData(i, v);
+	}
 
-	//m_treeSpriteRenderItem->Geo->VertexBufferGPU = newParticlesVB->Resource();
+	m_treeSpriteRenderItem->Geo->VertexBufferGPU = newParticlesVB->Resource();
 }
 
 void ShapesApp::UpdateWaves(const GameTimer& gameTimer) {
@@ -805,11 +805,11 @@ void ShapesApp::BuildTreeSpritesGeometry() {
 }
 
 void ShapesApp::BuildTestSpriteGeometry() {
-	const int particleCount = 1;
+	const int particleCount = 3;
 	const DirectX::XMFLOAT3 startPosition = { 0.0f, 0.0f, 0.0f };
 
 	std::array<TestSpriteVertex, particleCount> vertices;
-	std::array<std::uint16_t, particleCount> indices = {0};
+	std::array<std::uint16_t, particleCount> indices = {0, 1, 2};
 
 	m_particles = std::make_unique<Particles>(startPosition, particleCount);
 
