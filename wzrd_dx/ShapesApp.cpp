@@ -805,19 +805,24 @@ void ShapesApp::BuildTreeSpritesGeometry() {
 }
 
 void ShapesApp::BuildTestSpriteGeometry() {
-	const int particleCount = 3;
+	const int particleCount = 5;
 	const DirectX::XMFLOAT3 startPosition = { 0.0f, 0.0f, 0.0f };
+	const DirectX::XMFLOAT2 startSize = { 0.0f, 0.0f };
 
-	std::array<TestSpriteVertex, particleCount> vertices;
-	std::array<std::uint16_t, particleCount> indices = {0, 1, 2};
+	std::vector<TestSpriteVertex> vertices;
+	std::vector<std::uint16_t> indices;
 
-	m_particles = std::make_unique<Particles>(startPosition, particleCount);
-
-	for (UINT i = 0; i < m_particles->ParticleCount(); ++i)
+	for (UINT i = 0; i < particleCount; ++i)
 	{
-		vertices[i].Pos = startPosition;
-		vertices[i].Size = XMFLOAT2(1.0f, 1.0f);
+		TestSpriteVertex newVertex;
+		newVertex.Pos = startPosition;
+		newVertex.Size = startSize;
+
+		vertices.push_back(newVertex);
+		indices.push_back(i);
 	}
+
+	m_particles = std::make_unique<Particles>(startPosition, particleCount, vertices);
 
 	const UINT vbByteSize = (UINT)vertices.size() * sizeof(TestSpriteVertex);
 	const UINT ibByteSize = (UINT)indices.size() * sizeof(uint16_t);

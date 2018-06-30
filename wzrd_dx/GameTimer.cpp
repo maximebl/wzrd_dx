@@ -68,7 +68,7 @@ void GameTimer::Tick() {
 	QueryPerformanceCounter((LARGE_INTEGER*)&currentTime);
 	m_currentTime = currentTime;
 
-	// Time diff between this fame and the previous
+	// Time diff between this frame and the previous
 	m_deltaTime = (m_currentTime - m_prevTime) * m_secondsPerCount;
 
 	// Prepare for next frame
